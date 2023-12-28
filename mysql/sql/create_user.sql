@@ -1,0 +1,18 @@
+USE bookstore_management_system;
+
+DROP TABLE IF EXISTS user;
+
+CREATE TABLE `user` (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(36) NOT NULL DEFAULT '',
+    password_hash VARCHAR(255) NOT NULL DEFAULT '',
+    address VARCHAR(255) DEFAULT NULL,
+    balance DOUBLE NOT NULL DEFAULT 0.0,
+    credit_rating INT NOT NULL DEFAULT 1,
+    email VARCHAR(255) NOT NULL DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_name ON user (name);
+CREATE INDEX idx_email ON user (email);
