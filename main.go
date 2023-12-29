@@ -3,10 +3,16 @@
 package main
 
 import (
+	"db_lab_library/mysql"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
+func Init() {
+	mysql.Init()
+}
+
 func main() {
+	Init()
 	h := server.Default()
 
 	register(h)

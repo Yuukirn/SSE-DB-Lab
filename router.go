@@ -4,6 +4,8 @@ package main
 
 import (
 	handler "db_lab_library/biz/handler"
+	"db_lab_library/biz/handler/book"
+	"db_lab_library/biz/handler/user"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
@@ -11,5 +13,13 @@ import (
 func customizedRegister(r *server.Hertz) {
 	r.GET("/ping", handler.Ping)
 
-	// your code ...
+	bookController := r.Group("book")
+	{
+		bookController.POST("", book.Insert)
+	}
+
+	userController := r.Group("user")
+	{
+		userController.POST("", user.Insert)
+	}
 }
