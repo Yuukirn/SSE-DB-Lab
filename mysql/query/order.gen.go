@@ -31,7 +31,7 @@ func newOrder(db *gorm.DB, opts ...gen.DOOption) order {
 	_order.OrderDate = field.NewTime(tableName, "order_date")
 	_order.UserID = field.NewInt32(tableName, "user_id")
 	_order.BookIds = field.NewString(tableName, "book_ids")
-	_order.OrderAmount = field.NewInt32(tableName, "order_amount")
+	_order.OrderAmounts = field.NewString(tableName, "order_amounts")
 	_order.OrderMoney = field.NewFloat64(tableName, "order_money")
 	_order.DeliveryAddress = field.NewString(tableName, "delivery_address")
 	_order.DeliveryStatus = field.NewString(tableName, "delivery_status")
@@ -51,7 +51,7 @@ type order struct {
 	OrderDate       field.Time
 	UserID          field.Int32
 	BookIds         field.String
-	OrderAmount     field.Int32
+	OrderAmounts    field.String
 	OrderMoney      field.Float64
 	DeliveryAddress field.String
 	DeliveryStatus  field.String
@@ -77,7 +77,7 @@ func (o *order) updateTableName(table string) *order {
 	o.OrderDate = field.NewTime(table, "order_date")
 	o.UserID = field.NewInt32(table, "user_id")
 	o.BookIds = field.NewString(table, "book_ids")
-	o.OrderAmount = field.NewInt32(table, "order_amount")
+	o.OrderAmounts = field.NewString(table, "order_amounts")
 	o.OrderMoney = field.NewFloat64(table, "order_money")
 	o.DeliveryAddress = field.NewString(table, "delivery_address")
 	o.DeliveryStatus = field.NewString(table, "delivery_status")
@@ -104,7 +104,7 @@ func (o *order) fillFieldMap() {
 	o.fieldMap["order_date"] = o.OrderDate
 	o.fieldMap["user_id"] = o.UserID
 	o.fieldMap["book_ids"] = o.BookIds
-	o.fieldMap["order_amount"] = o.OrderAmount
+	o.fieldMap["order_amounts"] = o.OrderAmounts
 	o.fieldMap["order_money"] = o.OrderMoney
 	o.fieldMap["delivery_address"] = o.DeliveryAddress
 	o.fieldMap["delivery_status"] = o.DeliveryStatus

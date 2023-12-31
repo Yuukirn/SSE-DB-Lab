@@ -12,8 +12,8 @@ func NewErrResp(c *app.RequestContext, err error) {
 	NewResp(c, -1, err.Error(), nil)
 }
 
-func NewOkResp(c *app.RequestContext, msg string, data any) {
-	NewResp(c, 0, msg, data)
+func NewOkResp(c *app.RequestContext, data any) {
+	NewResp(c, 0, "OK", data)
 }
 
 func NewResp(c *app.RequestContext, statusCode int, msg string, data any) {

@@ -6,6 +6,7 @@ package query
 
 import (
 	"context"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,6 +14,7 @@ import (
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gen/helper"
 
 	"gorm.io/plugin/dbresolver"
 
@@ -36,7 +38,7 @@ func newBook(db *gorm.DB, opts ...gen.DOOption) book {
 	_book.Catalogue = field.NewString(tableName, "catalogue")
 	_book.Cover = field.NewString(tableName, "cover")
 	_book.Inventory = field.NewInt32(tableName, "inventory")
-	_book.PublisherIds = field.NewString(tableName, "publisher_ids")
+	_book.SupplierIds = field.NewString(tableName, "supplier_ids")
 	_book.Location = field.NewString(tableName, "location")
 	_book.SubbookIds = field.NewString(tableName, "subbook_ids")
 	_book.CreatedAt = field.NewTime(tableName, "created_at")
@@ -50,21 +52,21 @@ func newBook(db *gorm.DB, opts ...gen.DOOption) book {
 type book struct {
 	bookDo
 
-	ALL          field.Asterisk
-	ID           field.Int32
-	Name         field.String
-	Authors      field.String
-	Publisher    field.String
-	Price        field.Float64
-	Keywords     field.String
-	Catalogue    field.String
-	Cover        field.String
-	Inventory    field.Int32
-	PublisherIds field.String
-	Location     field.String
-	SubbookIds   field.String
-	CreatedAt    field.Time
-	UpdatedAt    field.Time
+	ALL         field.Asterisk
+	ID          field.Int32
+	Name        field.String
+	Authors     field.String
+	Publisher   field.String
+	Price       field.Float64
+	Keywords    field.String
+	Catalogue   field.String
+	Cover       field.String
+	Inventory   field.Int32
+	SupplierIds field.String
+	Location    field.String
+	SubbookIds  field.String
+	CreatedAt   field.Time
+	UpdatedAt   field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -90,7 +92,7 @@ func (b *book) updateTableName(table string) *book {
 	b.Catalogue = field.NewString(table, "catalogue")
 	b.Cover = field.NewString(table, "cover")
 	b.Inventory = field.NewInt32(table, "inventory")
-	b.PublisherIds = field.NewString(table, "publisher_ids")
+	b.SupplierIds = field.NewString(table, "supplier_ids")
 	b.Location = field.NewString(table, "location")
 	b.SubbookIds = field.NewString(table, "subbook_ids")
 	b.CreatedAt = field.NewTime(table, "created_at")
@@ -121,7 +123,7 @@ func (b *book) fillFieldMap() {
 	b.fieldMap["catalogue"] = b.Catalogue
 	b.fieldMap["cover"] = b.Cover
 	b.fieldMap["inventory"] = b.Inventory
-	b.fieldMap["publisher_ids"] = b.PublisherIds
+	b.fieldMap["supplier_ids"] = b.SupplierIds
 	b.fieldMap["location"] = b.Location
 	b.fieldMap["subbook_ids"] = b.SubbookIds
 	b.fieldMap["created_at"] = b.CreatedAt
@@ -199,6 +201,87 @@ type IBookDo interface {
 	Returning(value interface{}, columns ...string) IBookDo
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
+
+	GetByCondition(id int32, name string, publisher string, keyword string, authors []string) (result []*model.Book, err error)
+	GetBySupplierID(supplierID int32) (result []*model.Book, err error)
+}
+
+// SELECR * FROM @@table
+// {{ where }}
+//
+//	{{ if id != 0 }}
+//	  id = @id
+//	{{ end }}
+//	{{ if name != "" }}
+//	  AND name LIKE CONCAT('%', @name, '%')
+//	{{ end }}
+//
+// {{ if publisher != "" }}
+//
+//	   AND publisher LIKE CONCAT('%', @publisher, '%')
+//	 {{ end }}
+//	 {{ if keyword != "" }}
+//	   AND @keyword MEMBER OF(JSON_EXTRACT(keywords, '$[*]'))
+//	 {{ end }}
+//	 {{ for i, author := range authors }}
+//	   {{ if author != "" }}
+//	     AND JSON_CONTAINS(authors, @author, CONCAT('$[', @i, ']')
+//		   {{ end }}
+//	 {{ end }}
+//
+// {{ end }}
+func (b bookDo) GetByCondition(id int32, name string, publisher string, keyword string, authors []string) (result []*model.Book, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	generateSQL.WriteString("SELECR * FROM book ")
+	var whereSQL0 strings.Builder
+	if id != 0 {
+		params = append(params, id)
+		whereSQL0.WriteString("id = ? ")
+	}
+	if name != "" {
+		params = append(params, name)
+		whereSQL0.WriteString("AND name LIKE CONCAT('%', ?, '%') ")
+	}
+	if publisher != "" {
+		params = append(params, publisher)
+		whereSQL0.WriteString("AND publisher LIKE CONCAT('%', ?, '%') ")
+	}
+	if keyword != "" {
+		params = append(params, keyword)
+		whereSQL0.WriteString("AND ? MEMBER OF(JSON_EXTRACT(keywords, '$[*]')) ")
+	}
+	for i, author := range authors {
+		if author != "" {
+			params = append(params, author)
+			params = append(params, i)
+			whereSQL0.WriteString("AND JSON_CONTAINS(authors, ?, CONCAT('$[', ?, ']') ")
+		}
+	}
+	helper.JoinWhereBuilder(&generateSQL, whereSQL0)
+
+	var executeSQL *gorm.DB
+	executeSQL = b.UnderlyingDB().Raw(generateSQL.String(), params...).Find(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
+}
+
+// SELECT * FROM @@table
+// WHERE @supplierID MEMBER OF(JSON_EXTRACT(supplier_ids, '$[*]'))
+func (b bookDo) GetBySupplierID(supplierID int32) (result []*model.Book, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	params = append(params, supplierID)
+	generateSQL.WriteString("SELECT * FROM book WHERE ? MEMBER OF(JSON_EXTRACT(supplier_ids, '$[*]')) ")
+
+	var executeSQL *gorm.DB
+	executeSQL = b.UnderlyingDB().Raw(generateSQL.String(), params...).Find(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
 }
 
 func (b bookDo) Debug() IBookDo {

@@ -6,6 +6,7 @@ package query
 
 import (
 	"context"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,6 +14,7 @@ import (
 
 	"gorm.io/gen"
 	"gorm.io/gen/field"
+	"gorm.io/gen/helper"
 
 	"gorm.io/plugin/dbresolver"
 
@@ -175,6 +177,42 @@ type IUserDo interface {
 	Returning(value interface{}, columns ...string) IUserDo
 	UnderlyingDB() *gorm.DB
 	schema.Tabler
+
+	GetByCondition(id int32, name string) (result []*model.User, err error)
+}
+
+// SELECR * FROM @@table
+// {{ where }}
+//
+//	{{ if id != 0 }}
+//	  id = @id
+//	{{ end }}
+//	{{ if name != "" }}
+//	  AND name LIKE CONCAT('%', @name, '%')
+//	{{ end }}
+//
+// {{ end }}
+func (u userDo) GetByCondition(id int32, name string) (result []*model.User, err error) {
+	var params []interface{}
+
+	var generateSQL strings.Builder
+	generateSQL.WriteString("SELECR * FROM user ")
+	var whereSQL0 strings.Builder
+	if id != 0 {
+		params = append(params, id)
+		whereSQL0.WriteString("id = ? ")
+	}
+	if name != "" {
+		params = append(params, name)
+		whereSQL0.WriteString("AND name LIKE CONCAT('%', ?, '%') ")
+	}
+	helper.JoinWhereBuilder(&generateSQL, whereSQL0)
+
+	var executeSQL *gorm.DB
+	executeSQL = u.UnderlyingDB().Raw(generateSQL.String(), params...).Find(&result) // ignore_security_alert
+	err = executeSQL.Error
+
+	return
 }
 
 func (u userDo) Debug() IUserDo {

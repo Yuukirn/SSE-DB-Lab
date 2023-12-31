@@ -8,19 +8,18 @@ import (
 	"time"
 )
 
-const TableNamePublisher = "publisher"
+const TableNameOutOfStockRecord = "out_of_stock_record"
 
-// Publisher mapped from table <publisher>
-type Publisher struct {
+// OutOfStockRecord mapped from table <out_of_stock_record>
+type OutOfStockRecord struct {
 	ID        int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	Name      string    `gorm:"column:name;not null" json:"name"`
-	Address   string    `gorm:"column:address;not null" json:"address"`
-	Email     string    `gorm:"column:email;not null" json:"email"`
+	BookID    int32     `gorm:"column:book_id;not null" json:"book_id"`
+	Number    int32     `gorm:"column:number;not null" json:"number"`
 	CreatedAt time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
-// TableName Publisher's table name
-func (*Publisher) TableName() string {
-	return TableNamePublisher
+// TableName OutOfStockRecord's table name
+func (*OutOfStockRecord) TableName() string {
+	return TableNameOutOfStockRecord
 }

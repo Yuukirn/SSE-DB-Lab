@@ -16,49 +16,64 @@ import (
 )
 
 var (
-	Q         = new(Query)
-	Book      *book
-	Order     *order
-	Publisher *publisher
-	User      *user
+	Q                = new(Query)
+	Book             *book
+	Delivery         *delivery
+	Order            *order
+	OutOfStockRecord *outOfStockRecord
+	PurchaseOrder    *purchaseOrder
+	Supplier         *supplier
+	User             *user
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Book = &Q.Book
+	Delivery = &Q.Delivery
 	Order = &Q.Order
-	Publisher = &Q.Publisher
+	OutOfStockRecord = &Q.OutOfStockRecord
+	PurchaseOrder = &Q.PurchaseOrder
+	Supplier = &Q.Supplier
 	User = &Q.User
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:        db,
-		Book:      newBook(db, opts...),
-		Order:     newOrder(db, opts...),
-		Publisher: newPublisher(db, opts...),
-		User:      newUser(db, opts...),
+		db:               db,
+		Book:             newBook(db, opts...),
+		Delivery:         newDelivery(db, opts...),
+		Order:            newOrder(db, opts...),
+		OutOfStockRecord: newOutOfStockRecord(db, opts...),
+		PurchaseOrder:    newPurchaseOrder(db, opts...),
+		Supplier:         newSupplier(db, opts...),
+		User:             newUser(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Book      book
-	Order     order
-	Publisher publisher
-	User      user
+	Book             book
+	Delivery         delivery
+	Order            order
+	OutOfStockRecord outOfStockRecord
+	PurchaseOrder    purchaseOrder
+	Supplier         supplier
+	User             user
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:        db,
-		Book:      q.Book.clone(db),
-		Order:     q.Order.clone(db),
-		Publisher: q.Publisher.clone(db),
-		User:      q.User.clone(db),
+		db:               db,
+		Book:             q.Book.clone(db),
+		Delivery:         q.Delivery.clone(db),
+		Order:            q.Order.clone(db),
+		OutOfStockRecord: q.OutOfStockRecord.clone(db),
+		PurchaseOrder:    q.PurchaseOrder.clone(db),
+		Supplier:         q.Supplier.clone(db),
+		User:             q.User.clone(db),
 	}
 }
 
@@ -72,27 +87,36 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:        db,
-		Book:      q.Book.replaceDB(db),
-		Order:     q.Order.replaceDB(db),
-		Publisher: q.Publisher.replaceDB(db),
-		User:      q.User.replaceDB(db),
+		db:               db,
+		Book:             q.Book.replaceDB(db),
+		Delivery:         q.Delivery.replaceDB(db),
+		Order:            q.Order.replaceDB(db),
+		OutOfStockRecord: q.OutOfStockRecord.replaceDB(db),
+		PurchaseOrder:    q.PurchaseOrder.replaceDB(db),
+		Supplier:         q.Supplier.replaceDB(db),
+		User:             q.User.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Book      IBookDo
-	Order     IOrderDo
-	Publisher IPublisherDo
-	User      IUserDo
+	Book             IBookDo
+	Delivery         IDeliveryDo
+	Order            IOrderDo
+	OutOfStockRecord IOutOfStockRecordDo
+	PurchaseOrder    IPurchaseOrderDo
+	Supplier         ISupplierDo
+	User             IUserDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Book:      q.Book.WithContext(ctx),
-		Order:     q.Order.WithContext(ctx),
-		Publisher: q.Publisher.WithContext(ctx),
-		User:      q.User.WithContext(ctx),
+		Book:             q.Book.WithContext(ctx),
+		Delivery:         q.Delivery.WithContext(ctx),
+		Order:            q.Order.WithContext(ctx),
+		OutOfStockRecord: q.OutOfStockRecord.WithContext(ctx),
+		PurchaseOrder:    q.PurchaseOrder.WithContext(ctx),
+		Supplier:         q.Supplier.WithContext(ctx),
+		User:             q.User.WithContext(ctx),
 	}
 }
 

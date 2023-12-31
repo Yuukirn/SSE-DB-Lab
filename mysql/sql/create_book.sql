@@ -12,7 +12,7 @@ CREATE TABLE book (
     catalogue VARCHAR(255) DEFAULT NULL,
     cover VARCHAR(255) DEFAULT NULL,
     inventory INT NOT NULL DEFAULT 0,
-    publisher_ids JSON DEFAULT NULL,
+    supplier_ids JSON DEFAULT NULL,
     location VARCHAR(255) DEFAULT NULL,
     subbook_ids JSON DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -21,3 +21,18 @@ CREATE TABLE book (
 
 CREATE INDEX idx_name ON book (name);
 CREATE INDEX idx_publisher ON book (publisher);
+CREATE INDEX idx_catalogue ON book (catalogue);
+
+CREATE TRIGGER after_book_update AFTER UPDATE
+ON book FOR EACH ROW
+BEGIN
+    DECLARE record_count INT;
+    IF (NEW.inventory < 10) THEN
+        SELECT COUNT(*) INTO record_count FROM out_of_stock_record WHERE book_id = NEW.id;
+        if (record_count = 0) THEN
+            INSERT INTO out_of_stock_record(book_id, number) VALUES (NEW.id, 20);
+        ELSE
+            UPDATE out_of_stock_record SET number = number + 20 WHERE book_id = NEW.id;
+        END IF;
+    END IF;
+END;

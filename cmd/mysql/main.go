@@ -1,6 +1,7 @@
 package main
 
 import (
+	"db_lab_library/mysql/method"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gen"
@@ -29,8 +30,16 @@ func main() {
 		g.GenerateModel("user"),
 		g.GenerateModel("book"),
 		g.GenerateModel("order"),
-		g.GenerateModel("publisher"),
+		g.GenerateModel("supplier"),
+		g.GenerateModel("out_of_stock_record"),
+		g.GenerateModel("delivery"),
+		g.GenerateModel("purchase_order"),
 	)
+
+	g.ApplyInterface(func(method.BookMethod) {}, g.GenerateModel("book"))
+	g.ApplyInterface(func(method.UserMethod) {}, g.GenerateModel("user"))
+	g.ApplyInterface(func(method.SupplierMethod) {}, g.GenerateModel("supplier"))
+	g.ApplyInterface(func(order method.PurchaseOrder) {}, g.GenerateModel("purchase_order"))
 
 	g.Execute()
 }

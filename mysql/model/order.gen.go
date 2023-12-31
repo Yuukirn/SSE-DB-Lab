@@ -16,7 +16,7 @@ type Order struct {
 	OrderDate       time.Time `gorm:"column:order_date;not null" json:"order_date"`
 	UserID          int32     `gorm:"column:user_id;not null" json:"user_id"`
 	BookIds         string    `gorm:"column:book_ids;not null" json:"book_ids"`
-	OrderAmount     int32     `gorm:"column:order_amount;not null" json:"order_amount"`
+	OrderAmounts    string    `gorm:"column:order_amounts;not null" json:"order_amounts"`
 	OrderMoney      float64   `gorm:"column:order_money;not null" json:"order_money"`
 	DeliveryAddress string    `gorm:"column:delivery_address;not null" json:"delivery_address"`
 	DeliveryStatus  string    `gorm:"column:delivery_status;not null" json:"delivery_status"`
