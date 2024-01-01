@@ -23,7 +23,7 @@ func customizedRegister(r *server.Hertz) {
 
 	userController := r.Group("user")
 	{
-		userController.POST("", user.Insert)
+		userController.POST("/insert", user.Insert)
 		userController.POST("/get", user.Get)
 		userController.POST("/update_basic_info", user.UpdateBasicInfo)
 		userController.POST("/update_credit_rating", user.UpdateCreditRating)

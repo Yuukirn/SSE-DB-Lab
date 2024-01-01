@@ -16,7 +16,7 @@ import (
 type InsertReq struct {
 	UserID          int32   `json:"user_id"`
 	BookIDs         []int32 `json:"book_ids"`
-	OrderAmounts    []int32 `json:"order_amount"`
+	OrderAmounts    []int32 `json:"order_amounts"`
 	DeliveryAddress string  `json:"delivery_address"`
 	PaymentAmount   float64 `json:"payment_amount"`
 }
@@ -60,6 +60,7 @@ func Insert(ctx context.Context, c *app.RequestContext) {
 					return
 				}
 			}
+			return
 		}
 
 		orderMoney += book.Price * float64(req.OrderAmounts[i])
@@ -113,8 +114,7 @@ func Insert(ctx context.Context, c *app.RequestContext) {
 	util.NewOkResp(c, InsertResp{ID: order.ID})
 }
 
-func countPayment(creditRating int32, orderMoney float64) float64 {
-	var payment float64
+func countPayment(creditRating int32, orderMoney float64) (payment float64) {
 	switch creditRating {
 	case 1:
 		payment = orderMoney * 0.9
@@ -127,5 +127,5 @@ func countPayment(creditRating int32, orderMoney float64) float64 {
 	case 5:
 		payment = orderMoney * 0.75
 	}
-	return payment
+	return
 }

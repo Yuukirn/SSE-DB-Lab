@@ -48,8 +48,9 @@ type GetReq struct {
 }
 
 type GetResp struct {
-	UserInfo *model.User    `json:"user_info"`
-	Orders   []*model.Order `json:"orders"`
+	UserInfo   *model.User       `json:"user_info"`
+	Orders     []*model.Order    `json:"orders"`
+	Deliveries []*model.Delivery `json:"deliveries"`
 }
 
 func Get(ctx context.Context, c *app.RequestContext) {
@@ -67,15 +68,26 @@ func Get(ctx context.Context, c *app.RequestContext) {
 
 	user := users[0]
 	orders, err := query.Order.WithContext(ctx).Where(query.Order.UserID.Eq(user.ID)).Find()
-	// TODO: 相关订单的发货信息等。
 	if err != nil {
 		util.NewErrResp(c, err)
 		return
 	}
 
+	var deliveries []*model.Delivery
+	d := query.Delivery
+	for _, order := range orders {
+		delivery, err := d.WithContext(ctx).Where(d.OrderID.Eq(order.ID)).First()
+		if err != nil {
+			util.NewErrResp(c, err)
+			return
+		}
+		deliveries = append(deliveries, delivery)
+	}
+
 	util.NewOkResp(c, GetResp{
-		UserInfo: user,
-		Orders:   orders,
+		UserInfo:   user,
+		Orders:     orders,
+		Deliveries: deliveries,
 	})
 }
 
